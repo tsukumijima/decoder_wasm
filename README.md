@@ -1,42 +1,64 @@
-# 1 简介
-借助于WebAssembly(简称Wasm)技术，实现在浏览器端调用ffmpeg接口完成H.265码流到YUV数据的解码。  
-总体流程如下：
+
+このフォークでは、もともと H.265 をブラウザで再生するために作られた decoder_wasm に、MPEG2Video のデコード機能を追加しています。  
+以下のドキュメントは、元の中国語のドキュメントを日本語に（ Google 翻訳を使い）翻訳し、また現状に合わせて変更したものです。
+
+-----
+
+# 1. はじめに
+
+WebAssembly (Wasm) テクノロジーの助けを借りて、FFmpeg インターフェースが呼び出され、ブラウザー側で H.264 / H.265 / MPEG2Video ストリームから YUV データへのデコードが完了します。
+全体的なプロセスは次のとおりです：
+
 ![Decode With FFmpeg and WASM](./doc/wasm.jpg "页面通过wasm调用FFmpeg流程图")
 
-# 2 依赖
+# 2. 依存関係
+
 ## 2.1 [WebAssembly (Wasm)](https://webassembly.org/)
-按照官网的定义，WebAssembly (wasm) 是一个可移植、体积小、加载快并且兼容 Web 的全新格式。通过wasm，可以在浏览器里执行原生代码(例如C、C++)。  
-目前，wasm技术已经得到主流浏览器的广泛支持（数据来源[Can I Use](https://www.caniuse.com/#search=WebAssembly)）。
+
+公式ウェブサイトの定義によると、WebAssembly (wasm) は、ポータブルで、サイズが小さく、読み込みが速く、Web と互換性のある新しい形式です。wasm を介して、ネイティブコード（ C, C++ など）をブラウザーで実行できます。  
+現在、wasm テクノロジーは主流のブラウザー（データソース: [Can I Use](https://www.caniuse.com/#search=WebAssembly)）によって広くサポートされています。
+
 ![Browser Suport For WASM](./doc/caniuse_wasm.jpg "主流浏览器对wasm的支持")
+
 ## 2.2 FFmpeg
-FFmpeg是一套可以用来记录、转换数字音频、视频，并能将其转化为流的开源计算机程序。采用LGPL或GPL许可证。它提供了录制、转换以及流化音视频的完整解决方案。  
-我们代码里主要使用FFmpeg来做解码（decode）。为了减小体积，最终编译生成的wasm里包含的是裁剪过的FFmpeg，主要包含以下几个库：
-- libavcodec： 编解码（最重要的库）
-- libavutil： 工具库（大部分库都需要这个库的支持）
-- libswscale： 视频像素数据格式转换
 
-# 3 具体实现
-## 3.1 接口
-编译生成的wasm文件对外提供四个接口：
-- openDecoder：初始化解码器；
-- decodeData：解码传入的H.265码流数据；
-- flushDecoder：清空缓存数据；
-- closeDecoder：关闭解码器；  
+FFmpeg は、デジタル音声と映像の記録、変換、およびストリームへの変換に使用できるオープンソースのコンピュータープログラムのセットです。LGPL または GPL ライセンスを採用します。音声と映像の録音、変換、ストリーミングのための完全なソリューションを提供します。  
+私たちのコードは主にデコードに FFmpeg を使用しています。サイズを小さくするために、最終的にコンパイルされた wasm には、トリミングされた FFmpeg が含まれています。これには、主に次のライブラリが含まれています：
 
-## 3.2 实现细节
-解码过程中使用到的FFmpeg API及解码流程如下图所示：
+- libavcodec: コーデック（最も重要なライブラリ）
+- libavutil: ツールライブラリ（ほとんどのライブラリはこのライブラリのサポートが必要です）
+- libswscale: 映像のピクセルデータのフォーマット変換
+
+# 3. 具体的な実現
+
+## 3.1 インターフェース
+
+コンパイルされた wasm ファイルは、4つの外部インターフェースを提供します：
+
+- openDecoder: デコーダーを初期化します。
+- decodeData: 受信した H.264 / H.265 / MPEG2Video ストリームデータをデコードします。
+- flushDecoder: キャッシュされたデータをクリアします。
+- closeDecoder: デコーダーを閉じます。
+
+## 3.2 実装の詳細
+
+デコードプロセスとデコードプロセスで使用される FFmpeg API を次の図に示します：
+
 ![decoder](./doc/decode_video.jpg "调用FFmpeg API解码流程")
 
-## 3.3 如何使用
-最终的编译结果是两个文件，一个是包含ffmpeg库的wasm文件，另一个是胶水代码(js文件)。页面里引用js文件时，胶水代码会加载wasm。   
-Javascript与WASM的数据交互：  
+## 3.3 使用方法
+
+最終的なコンパイル結果は2つのファイルです。1つは FFmpeg ライブラリを含む wasm ファイルで、もう1つはグルーコード（ js ファイル）です。  
+ページで js ファイルが参照されると、グルーコードは wasm をロードします。  
+JavaScript と Wasm 間のデータ送受信：
+
 ```js
-// 发送：
+// 送信：
 var cacheBuffer = Module._malloc(data.length);
 Module.HEAPU8.set(data, cacheBuffer);
 var ret = Module._decodeData(cacheBuffer, data.length, pts);
 
-// 接收：
+// 受信：
 var videoSize = 0;
 var videoCallback = Module.addFunction(function (addr_y, addr_u, addr_v, stride_y, stride_u, stride_v, width, height, pts) {
     console.log("[%d]In video callback, size = %d * %d, pts = %d", ++videoSize, width, height, pts)
@@ -57,18 +79,23 @@ var videoCallback = Module.addFunction(function (addr_y, addr_u, addr_v, stride_
     }
     displayVideoFrame(obj);
 });
-var codecType = 1; // 0 - H.264, 1 - H.265
+
+// コーデックの種類: 0 - H.264, 1 - H.265, 2 - MPEG2Video
+var codecType = 1;
+// openDecoder() メソッドを介して C レイヤーにコールバックを渡し、C レイヤーでこれを呼び出す必要があります。
 var ret = Module._openDecoder(codecType, videoCallback, LOG_LEVEL_WASM)
-// 需要把回调通过openDecoder方法传入C层，在C层调用。
 ```
 
-# 4 编译
-## 4.1 安装Wasm工具链Emscripten
-安装步骤可参考其[官方文档](https://emscripten.org/docs/getting_started/downloads.html)，目前支持 Windows, MacOS, Linux。
+# 4 コンパイル
 
-建议版本：1.38.45， 编译运行都没问题。
+## 4.1 Emscripten をインストールする
 
-## 4.2 下载FFmpeg
+インストール手順については、[公式ドキュメント](https://emscripten.org/docs/getting_started/downloads.html) を参照してください。現在、Windows、MacOS、および Linux をサポートしています。
+
+推奨バージョン: 1.38.45, コンパイルと実行に問題はありません。
+
+## 4.2 FFmpeg をダウンロードする
+
 ```bash
 mkdir goldvideo
 cd goldvideo
@@ -76,44 +103,61 @@ git clone https://git.ffmpeg.org/ffmpeg.git
 cd ffmpeg
 git checkout -b 4.1 origin/release/4.1
 ```
-这里切到了4.1分支。
-## 4.3 下载本文的代码
-保证FFmpeg目录和代码目录平级。
+
+ここで 4.1 ブランチをチェックアウトします。
+
+## 4.3 この記事のコードをダウンロードする
+
+FFmpeg ディレクトリとコードディレクトリが同じフォルダ階層にあることを確認してください。
+
 ```bash
-git clone http://github.com/goldvideo/decoder_wasm.git
+git clone http://github.com/tsukumijima/decoder_wasm.git
 cd decoder_wasm
 
-目录结构：
+ディレクトリ構造：
 
 ├─goldvideo
 │  ├─ffmpeg
 │  ├─decoder_wasm
 ```
-## 4.4 编译
-进入代码目录，根据需要，以下命令三选一执行：
+
+## 4.4 コンパイル
+
+次のいずれかのコマンドを選択して実行します。
+
 ```bash
-./build_decoder_264.sh      //支持解码 H.264
-./build_decoder_265.sh      //支持解码 H.265
-./build_decoder_264_265.sh  //支持解码 H.264 和 H.265
+./build_decoder.sh             // H.264 / H.265 / MPEG2Video のデコードをサポート
+./build_decoder_h264.sh        // H.264 のデコードをサポート
+./build_decoder_h265.sh        // H.265 のデコードをサポート
+./build_decoder_mpeg2video.sh  // MPEG2Video のデコードをサポート
 ```
 
-# 5 测试
-## 5.1 WebGL
-H5使用Canvas来绘图，但是默认的2d模式只能绘制RGB格式，使用FFmpeg解码出来的视频数据是YUV格式，想要渲染出来需要进行颜色空间转换，可以使用FFmpeg的libswscale模块进行转换。
-为了提升性能，这里使用了WebGL来硬件加速，主要参考了这个项目，做了一些修改： https://github.com/p4prasoon/YUV-Webgl-Video-Player
+# 5. テスト
 
-## 5.2 启动：
+## 5.1 WebGL
+
+デコードした映像は Canvas を使用して描画しますが、デフォルトの 2d モードでは RGB 形式でしか描画できません。
+
+FFmpeg でデコードされたビデオデータは YUV 形式です。レンダリングする場合は、色空間変換を実行する必要があります。変換用に、FFmpeg の libswscale モジュールを使用できます。<br>
+パフォーマンスを向上させるために、WebGL はハードウェアアクセラレーションに使用されます。主に [YUV-Webgl-Video-Player](https://github.com/p4prasoon/YUV-Webgl-Video-Player) を参考にしていますが、いくつかの変更が加えられています。
+
+## 5.2 サーバーの起動：
 
 ```bash
 npm install
 npm start
 ```
-## 5.3 测试页面：
+## 5.3 テストページ：
+
+### 注意
+
+- PTS のない生の映像ファイルを再生するためか、再生中に一部のフレームがドロップする場合があります。
+- デコーダーの種類が正しく設定されないため、ファイルをドラッグ&ドロップで設定しないでください。
 
 ```
 http://localhost:3000/test/main.html
 ```
 
-# 6 参考项目
-[WasmVideoPlayer](https://github.com/sonysuqin/WasmVideoPlayer).
+# 6. 参考項目
 
+[WasmVideoPlayer](https://github.com/sonysuqin/WasmVideoPlayer).
