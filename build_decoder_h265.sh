@@ -12,4 +12,4 @@ emconfigure ./configure --cc="emcc" --cxx="em++" --ar="emar" --prefix=$(pwd)/../
 make
 make install
 cd ../decoder_wasm
-./build_decoder_wasm.sh 265
+./build_decoder_wasm.sh h265

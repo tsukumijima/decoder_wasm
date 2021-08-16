@@ -8,9 +8,8 @@ emconfigure ./configure --cc="emcc" --cxx="em++" --ar="emar" --prefix=$(pwd)/../
     --disable-programs --disable-logging --disable-everything \
     --disable-ffplay --disable-ffprobe --disable-asm --disable-doc --disable-devices --disable-network \
     --disable-hwaccels --disable-parsers --disable-bsfs --disable-debug --disable-protocols --disable-indevs --disable-outdevs \
-    --enable-decoder=hevc --enable-parser=hevc \
-    --enable-decoder=h264  --enable-parser=h264
+    --enable-decoder=mpeg2video --enable-parser=mpegvideo
 make
 make install
 cd ../decoder_wasm
-./build_decoder_wasm.sh 264_265
+./build_decoder_wasm.sh mpeg2video
