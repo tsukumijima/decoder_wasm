@@ -1,11 +1,10 @@
 var webglPlayer, canvas, videoWidth, videoHeight, yLength, uvLength;
-var LOG_LEVEL_JS = 0;
-var LOG_LEVEL_WASM = 1;
-var LOG_LEVEL_FFMPEG = 2;
+var LOG_LEVEL_WASM = 2;
 var DECODER_H264 = 0;
 var DECODER_H265 = 1;
+var DECODER_MPEG2VIDEO = 2;
 
-var decoder_type = DECODER_H265;
+var decoder_type = DECODER_MPEG2VIDEO;
 
 function handleVideoFiles(files) {
     var file_list = files;
@@ -81,8 +80,7 @@ function decode_seq(file_list, file_idx) {
             Module.HEAPU8.set(typedArray, cacheBuffer);
             totalSize += size
             // console.log("[" + (++readerIndex) + "] Read len = ", size + ", Total size = " + totalSize)
-
-            Module._decodeData(cacheBuffer, size, pts++)
+            Module._decodeData(cacheBuffer, size, pts++)  // set fake pts
             if (cacheBuffer != null) {
                 Module._free(cacheBuffer);
                 cacheBuffer = null;
