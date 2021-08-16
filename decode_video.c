@@ -35,7 +35,8 @@ typedef enum LogLevel {
 
 typedef enum DecoderType {
 	kDecoderType_H264,
-	kDecoderType_H265
+	kDecoderType_H265,
+	kDecoderType_MPEG2VIDEO
 }DecoderType;
 
 LogLevel logLevel = kLogLevel_None;
@@ -189,8 +190,10 @@ ErrorCode openDecoder(int codecType, long callback, int logLv) {
 		/* find the video decoder */
 		if (decoderType == kDecoderType_H264) {
 			codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-		} else {
+		} else if (decoderType == kDecoderType_H265) {
 			codec = avcodec_find_decoder(AV_CODEC_ID_H265);
+		} else if (decoderType == kDecoderType_MPEG2VIDEO) {
+			codec = avcodec_find_decoder(AV_CODEC_ID_MPEG2VIDEO);
 		}
 
 		if (!codec) {
