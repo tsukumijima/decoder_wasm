@@ -18,6 +18,7 @@ export EXPORTED_FUNCTIONS="[ \
 echo "Running Emscripten..."
 emcc decode_video.c ffmpeg/lib/libavcodec.a ffmpeg/lib/libavutil.a ffmpeg/lib/libswscale.a \
     -O2 \
+    -pthread \
     -I "ffmpeg/include" \
     -s WASM=1 \
     -s TOTAL_MEMORY=${TOTAL_MEMORY} \
@@ -25,6 +26,8 @@ emcc decode_video.c ffmpeg/lib/libavcodec.a ffmpeg/lib/libavutil.a ffmpeg/lib/li
    	-s EXTRA_EXPORTED_RUNTIME_METHODS="['addFunction']" \
 		-s RESERVED_FUNCTION_POINTERS=14 \
 		-s FORCE_FILESYSTEM=1 \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s WASM_MEM_MAX=512MB \
     -o dist/libffmpeg$suffix.js
 
 echo "Finished Build"
