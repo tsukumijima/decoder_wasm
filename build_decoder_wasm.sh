@@ -17,7 +17,7 @@ export EXPORTED_FUNCTIONS="[ \
 
 echo "Running Emscripten..."
 emcc decode_video.c ffmpeg/lib/libavcodec.a ffmpeg/lib/libavutil.a ffmpeg/lib/libswscale.a \
-    -O3 \
+    -O3 -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -msimd128 \
     -I "ffmpeg/include" \
     -s WASM=1 \
     -s USE_PTHREADS=1 \
