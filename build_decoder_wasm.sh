@@ -20,7 +20,7 @@ emcc decode_video.c ffmpeg/lib/libavcodec.a ffmpeg/lib/libavutil.a ffmpeg/lib/li
     -O3 -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -msimd128 \
     -I "ffmpeg/include" \
     -s WASM=1 \
-    -s USE_PTHREADS=1 \
+    -pthread -s USE_PTHREADS=1 -s PROXY_TO_PTHREAD=1 \
     -s TOTAL_MEMORY=${TOTAL_MEMORY} \
    	-s EXPORTED_FUNCTIONS="${EXPORTED_FUNCTIONS}" \
    	-s EXPORTED_RUNTIME_METHODS="['addFunction']" \

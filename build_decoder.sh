@@ -8,7 +8,7 @@ make clean
 # configure ffmpeg with Emscripten
 # ref: https://itnext.io/build-ffmpeg-webassembly-version-ffmpeg-js-part-3-ffmpeg-js-v0-1-0-transcoding-avi-to-mp4-f729e503a397
 export PATH="$PATH:$EMSDK/upstream/bin"
-CFLAGS="-s USE_PTHREADS -O3 -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -msimd128"
+CFLAGS="-pthread -s USE_PTHREADS=1 -s PROXY_TO_PTHREAD=1 -O3 -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -msimd128"
 emconfigure ./configure --cc="emcc" --cxx="em++" --objcc="emcc" --dep-cc="emcc" \
     --nm="llvm-nm" --ar="emar" --ranlib="emranlib" --extra-cflags="$CFLAGS" --extra-cxxflags="$CFLAGS" \
     --prefix=$(pwd)/../decoder_wasm/ffmpeg --enable-cross-compile --target-os=none --arch=x86_32 --cpu=generic \
