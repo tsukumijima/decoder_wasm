@@ -17,13 +17,13 @@ export EXPORTED_FUNCTIONS="[ \
 
 echo "Running Emscripten..."
 emcc decode_video.c ffmpeg/lib/libavcodec.a ffmpeg/lib/libavutil.a ffmpeg/lib/libswscale.a \
-    -O2 \
-    -pthread \
+    -O3 \
     -I "ffmpeg/include" \
     -s WASM=1 \
+    -s USE_PTHREADS=1 \
     -s TOTAL_MEMORY=${TOTAL_MEMORY} \
    	-s EXPORTED_FUNCTIONS="${EXPORTED_FUNCTIONS}" \
-   	-s EXTRA_EXPORTED_RUNTIME_METHODS="['addFunction']" \
+   	-s EXPORTED_RUNTIME_METHODS="['addFunction']" \
 		-s RESERVED_FUNCTION_POINTERS=14 \
 		-s FORCE_FILESYSTEM=1 \
     -s ALLOW_MEMORY_GROWTH=1 \

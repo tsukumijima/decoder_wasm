@@ -92,7 +92,7 @@ var ret = Module._openDecoder(codecType, videoCallback, LOG_LEVEL_WASM)
 
 インストール手順については、[公式ドキュメント](https://emscripten.org/docs/getting_started/downloads.html) を参照してください。現在、Windows、MacOS、および Linux をサポートしています。
 
-推奨バージョン: 1.38.45, コンパイルと実行に問題はありません。
+推奨バージョン: 2.0.27, コンパイルと実行に問題はありません。
 
 ## 4.2 FFmpeg をダウンロードする
 
