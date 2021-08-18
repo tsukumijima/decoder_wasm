@@ -55,7 +55,7 @@ function decode_seq(file_list, file_idx) {
             height
         }
         displayVideoFrame(obj);
-    });
+    }, 'viiiiiiiii');
 
     var ret = Module._openDecoder(decoder_type, videoCallback, LOG_LEVEL_WASM)
     if(ret == 0) {
